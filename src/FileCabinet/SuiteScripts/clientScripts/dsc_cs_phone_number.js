@@ -16,6 +16,16 @@ define(["N/ui/dialog", "N/log"], function (dialog, log) {
 
       originalPhone = number;
       previousPhone = number;
+
+      let poCheck = customerRecord.getValue({
+        fieldId: "custentity_dsc_requires_po",
+      });
+      let poNum = customerRecord.getField({
+        fieldId: "custentity_dsc_po_number",
+      });
+      if (!poCheck && poNum) {
+        poNum.isDisabled = true;
+      }
     } catch (e) {
       log.error({
         title: title + "Error",
@@ -89,46 +99,69 @@ define(["N/ui/dialog", "N/log"], function (dialog, log) {
   function fieldChanged(context) {
     let title = "fieldChanged :: ";
     try {
-      if (context.fieldId !== "phone") return;
+      if (context.fieldId == "custentity_dsc_requires_po") {
+        const customer = context.currentRecord;
+        let poCheck = customer.getValue({
+          fieldId: "custentity_dsc_requires_po",
+        });
+        let poNum = customer.getField({
+          fieldId: "custentity_dsc_po_number",
+        });
 
-      const customer = context.currentRecord;
-      const newNumber = (customer.getValue({ fieldId: "phone" }) || "").trim();
-
-      if (!newNumber) {
-        previousPhone = "";
-        return;
+        if (poCheck && poNum) {
+          poNum.isDisabled = false;
+        }
+        if (!poCheck && poNum) {
+          customer.setValue({
+            fieldId: "custentity_dsc_po_number",
+            value: "",
+          });
+          poNum.isDisabled = true;
+        }
       }
 
-      if (originalPhone && newNumber === originalPhone) {
-        dialog.alert({
-          title: "Duplicate Phone Number",
-          message:
-            "New phone number cannot be the same as the original phone number.",
-        });
+      if (context.fieldId == "phone") {
+        const customer = context.currentRecord;
+        const newNumber = (
+          customer.getValue({ fieldId: "phone" }) || ""
+        ).trim();
 
-        customer.setValue({
-          fieldId: "phone",
-          value: "",
-          ignoreFieldChange: true,
-        });
+        if (!newNumber) {
+          previousPhone = "";
+          return;
+        }
 
-        previousPhone = "";
-        return;
+        if (originalPhone && newNumber === originalPhone) {
+          dialog.alert({
+            title: "Duplicate Phone Number",
+            message:
+              "New phone number cannot be the same as the original phone number.",
+          });
+
+          customer.setValue({
+            fieldId: "phone",
+            value: "",
+            ignoreFieldChange: true,
+          });
+
+          previousPhone = "";
+          return;
+        }
+
+        if (previousPhone) {
+          dialog.alert({
+            title: "Phone Number Changed",
+            message: `Phone number changed from ${previousPhone} to ${newNumber}.`,
+          });
+        } else {
+          dialog.alert({
+            title: "Phone Added",
+            message: `Phone number ${newNumber} added to this record.`,
+          });
+        }
+
+        previousPhone = newNumber;
       }
-
-      if (previousPhone) {
-        dialog.alert({
-          title: "Phone Number Changed",
-          message: `Phone number changed from ${previousPhone} to ${newNumber}.`,
-        });
-      } else {
-        dialog.alert({
-          title: "Phone Added",
-          message: `Phone number ${newNumber} added to this record.`,
-        });
-      }
-
-      previousPhone = newNumber;
     } catch (e) {
       log.error({
         title: title + "Error",
@@ -137,9 +170,39 @@ define(["N/ui/dialog", "N/log"], function (dialog, log) {
     }
   }
 
+  function saveRecord(context) {
+    let title = "saveRecord :: ";
+    try {
+      const customer = context.currentRecord;
+      const poCheck = customer.getValue({
+        fieldId: "custentity_dsc_requires_po",
+      });
+      const poNum = customer.getValue({
+        fieldId: "custentity_dsc_po_number",
+      });
+
+      let trimmedPoNum = poNum ? poNum.trim() : "";
+
+      if (poCheck && trimmedPoNum.length == 0) {
+        alert(
+          "PO Number is required, either enter the PO Number or uncheck Requires PO.",
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      log.error({
+        title: title + "Error",
+        details: error.message,
+      });
+      return false;
+    }
+  }
   return {
     pageInit: pageInit,
     fieldChanged: fieldChanged,
     validateField: validateField,
+    saveRecord: saveRecord,
   };
 });
