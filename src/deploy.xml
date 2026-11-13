@@ -1,9 +1,28 @@
-<deploy>
+<!-- <deploy>
     <configuration>
         <path>~/AccountConfiguration/*</path>
     </configuration>
     <files>
         <path>~/FileCabinet/*</path>
+    </files>
+    <objects>
+        <path>~/Objects/*</path>
+    </objects>
+    <translationimports>
+        <path>~/Translations/*</path>
+    </translationimports>
+</deploy> -->
+
+
+<deploy>
+    <configuration>
+        <path>~/AccountConfiguration/*</path>
+    </configuration>
+    <files>
+        <path>~/FileCabinet/SuiteScripts/*</path>
+        <path>~/FileCabinet/SuiteScripts/clientScripts/*</path>
+        <path>~/FileCabinet/SuiteScripts/scheduledScripts/*</path>
+        <path>~/FileCabinet/SuiteScripts/userEventScipts/*</path>
     </files>
     <objects>
         <path>~/Objects/*</path>
