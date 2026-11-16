@@ -137,14 +137,14 @@ define(["N/record", "N/ui/dialog", "N/log"], function (record, dialog, log) {
 
       if (context.fieldId == "terms") {
         const salesOrder = context.currentRecord;
-        const dfltTerms = salesOrder.getText({
+        const termId = salesOrder.getValue({
           fieldId: "terms",
         });
 
-        if (dfltTerms) {
+        if (termId) {
           salesOrder.setValue({
             fieldId: "custbody_dsc_customer_terms_info",
-            value: dfltTerms,
+            value: termId,
           });
         }
       }
