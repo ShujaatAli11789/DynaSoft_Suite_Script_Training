@@ -3,6 +3,37 @@
  * @NScriptType ClientScript
  */
 define(["N/record", "N/ui/dialog", "N/log"], function (record, dialog, log) {
+  function pageInit(context) {
+    const title = "pageInit";
+    try {
+      if (context.mode == "create") {
+        const salesOrder = context.currentRecord;
+        salesOrder.selectLine({
+          sublistId: "item",
+          line: 0,
+        });
+
+        const reviewStatus = salesOrder.getCurrentSublistValue({
+          sublistId: "item",
+          fieldId: "custcol_dsc_line_review_status",
+        });
+
+        if (!reviewStatus) {
+          salesOrder.setCurrentSublistValue({
+            sublistId: "item",
+            fieldId: "custcol_dsc_line_review_status",
+            value: "Pending Review",
+          });
+        }
+      }
+    } catch (error) {
+      log.error({
+        title: title + "Error",
+        details: error.message,
+      });
+    }
+  }
+
   let isNewItemSelected = false;
 
   function fieldChanged(context) {
@@ -95,6 +126,20 @@ define(["N/record", "N/ui/dialog", "N/log"], function (record, dialog, log) {
           });
         }
       }
+
+      if (context.fieldId == "terms") {
+        const salesOrder = context.currentRecord;
+        const dfltTerms = salesOrder.getText({
+          fieldId: "terms",
+        });
+
+        if (dfltTerms) {
+          salesOrder.setValue({
+            fieldId: "custbody_dsc_customer_terms_info",
+            value: dfltTerms,
+          });
+        }
+      }
     } catch (e) {
       isNewItemSelected = false;
       log.error({
@@ -108,8 +153,34 @@ define(["N/record", "N/ui/dialog", "N/log"], function (record, dialog, log) {
     }
   }
 
+  function lineInit(context) {
+    const title = "lineInit";
+    try {
+      if (context.sublistId == "item") {
+        const salesOrder = context.currentRecord;
+        const reviewStatus = salesOrder.getCurrentSublistValue({
+          sublistId: "item",
+          fieldId: "custcol_dsc_line_review_status",
+        });
+        if (!reviewStatus) {
+          salesOrder.setCurrentSublistValue({
+            sublistId: "item",
+            fieldId: "custcol_dsc_line_review_status",
+            value: "Pending Review",
+          });
+        }
+      }
+    } catch (error) {
+      log.error({
+        title: title + "Error",
+        details: error.message,
+      });
+    }
+  }
   return {
+    pageInit: pageInit,
     fieldChanged: fieldChanged,
     postSourcing: postSourcing,
+    lineInit: lineInit,
   };
 });
