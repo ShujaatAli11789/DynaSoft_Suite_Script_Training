@@ -6,8 +6,8 @@ define(["N/record", "N/ui/dialog", "N/log"], function (record, dialog, log) {
   function pageInit(context) {
     const title = "pageInit";
     try {
+      const salesOrder = context.currentRecord;
       if (context.mode == "create") {
-        const salesOrder = context.currentRecord;
         salesOrder.selectLine({
           sublistId: "item",
           line: 0,
@@ -26,6 +26,14 @@ define(["N/record", "N/ui/dialog", "N/log"], function (record, dialog, log) {
           });
         }
       }
+
+      const totalLines = salesOrder.getLineCount({
+        sublistId: "item",
+      });
+      salesOrder.setValue({
+        fieldId: "custbody_dsc_total_item_lines",
+        value: totalLines,
+      });
     } catch (error) {
       log.error({
         title: title + "Error",
@@ -177,10 +185,61 @@ define(["N/record", "N/ui/dialog", "N/log"], function (record, dialog, log) {
       });
     }
   }
+
+  function validateLine(context) {
+    const title = "validateLine";
+    try {
+      if (context.sublistId == "item") {
+        const salesOrder = context.currentRecord;
+
+        let qty = salesOrder.getCurrentSublistValue({
+          sublistId: "item",
+          fieldId: "quantity",
+        });
+
+        if (!qty || qty <= 0) {
+          dialog.alert({
+            title: "Invalid Item Quantity",
+            message: "Select at least 1 in product quantity.",
+          });
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      log.error({
+        title: title + "Error",
+        details: error.message,
+      });
+    }
+  }
+  function sublistChanged(context) {
+    const title = "sublistChanged";
+    try {
+      if (context.sublistId == "item") {
+        const salesOrder = context.currentRecord;
+        const totalLines = salesOrder.getLineCount({
+          sublistId: "item",
+        });
+        salesOrder.setValue({
+          fieldId: "custbody_dsc_total_item_lines",
+          value: totalLines,
+        });
+      }
+    } catch (error) {
+      log.error({
+        title: title + "Error",
+        details: error.message,
+      });
+    }
+  }
   return {
     pageInit: pageInit,
     fieldChanged: fieldChanged,
     postSourcing: postSourcing,
     lineInit: lineInit,
+    validateLine: validateLine,
+    sublistChanged: sublistChanged,
   };
 });
