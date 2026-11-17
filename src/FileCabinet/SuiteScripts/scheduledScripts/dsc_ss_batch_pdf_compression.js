@@ -16,22 +16,25 @@ define(["N/search", "N/log", "N/render", "N/compress", "N/file"], function (
       const invSearch = search.create({
         type: search.Type.INVOICE,
         filters: [
-          search.createFilter({
-            name: "salesrep",
-            operator: search.Operator.IS,
-            values: 214,
-          }),
-          search.createFilter({
-            name: "mainline",
-            operator: search.Operator.IS,
-            values: "T",
-          }),
+          ["mainline", "is", "T"],
+          "AND",
+          ["salesrep", "is", "214"],
+          // search.createFilter({
+          //   name: "salesrep",
+          //   operator: search.Operator.IS,
+          //   values: 214,
+          // }),
+          // search.createFilter({
+          //   name: "mainline",
+          //   operator: search.Operator.IS,
+          //   values: "T",
+          // }),
         ],
       });
 
       const invoices = invSearch.run().getRange({
         start: 0,
-        end: 20,
+        end: 30,
       });
 
       if (!invoices || invoices.length === 0) {
@@ -76,7 +79,7 @@ define(["N/search", "N/log", "N/render", "N/compress", "N/file"], function (
       const saved_file = file.load({ id: fileId });
       log.audit({
         title: "Size Comparison",
-        details: `FileId:${saved_file.id} | File Name: ${saved_file.name} | Before: ${originalSize} | After: ${zipFile.size}`,
+        details: `File Id: ${saved_file.id} | File Name: ${saved_file.name} | Before: ${(originalSize / 1024 / 1024).toFixed(2)} Mbs | After: ${(zipFile.size / 1024 / 1024).toFixed(2)} Mbs`,
       });
     } catch (error) {
       log.error({
